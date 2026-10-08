@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>JLPT N2 Vocabulary Quiz</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+
+            background-image: url("/static/background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .quiz-container {
+            width: 90%;
+            max-width: 600px;
+
+            background: white;
+
+            padding: 45px;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 15px 35px rgba(0, 0, 0, 0.12);
+
+            text-align: center;
+        }
+
+        .title {
+            margin-bottom: 5px;
+
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            margin-top: 0;
+            margin-bottom: 35px;
+
+            color: #777;
+            font-size: 15px;
+        }
+
+        .word {
+            font-size: 52px;
+            font-weight: bold;
+
+            margin: 30px 0 40px;
+
+            letter-spacing: 3px;
+        }
+
+        .input-group {
+            text-align: left;
+
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            font-size: 14px;
+            font-weight: bold;
+
+            color: #555;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 14px 16px;
+
+            border: 2px solid #ddd;
+            border-radius: 10px;
+
+            font-size: 16px;
+
+            outline: none;
+
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #4f46e5;
+
+            box-shadow:
+                0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        button {
+            width: 100%;
+
+            padding: 14px;
+
+            margin-top: 10px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #4f46e5;
+
+            color: white;
+
+            font-size: 16px;
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #3730a3;
+
+            transform: translateY(-1px);
+        }
+
+        #result {
+            font-size: 22px;
+            font-weight: bold;
+
+            margin-top: 25px;
+        }
+
+        #reading,
+        #meaning {
+            color: #555;
+
+            margin: 8px 0;
+        }
+
+        #next {
+            background: #222;
+        }
+
+        #next:hover {
+            background: #000;
+        }
+
+        .footer {
+            margin-top: 30px;
+
+            font-size: 13px;
+
+            color: #aaa;
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+    <div class="quiz-container">
+
+        <div class="title">
+            JLPT N2
+        </div>
+
+        <div class="subtitle">
+            Vocabulary Quiz
+        </div>
+
+
+        <div id="word" class="word">
+            Loading...
+        </div>
+
+
+        <div class="input-group">
+
+            <label for="user-reading">
+                Reading
+            </label>
+
+            <input
+                type="text"
+                id="user-reading"
+                placeholder="Enter the reading"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <div class="input-group">
+
+            <label for="user-meaning">
+                Meaning
+            </label>
+
+            <input
+                type="text"
+                id="user-meaning"
+                placeholder="Enter the English meaning"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <button id="submit">
+            Submit Answer
+        </button>
+
+
+        <div class="result-box">
+            <p id="result"></p>
+            <p id="reading"></p>
+            <p id="meaning"></p>
+        </div>
+
+        <div id="usage-box" class="usage-box" style="display: none;">
+            <h3>Example</h3>
+            <p id="usage-japanese"></p>
+        </div>
+
+
+        <button
+            id="next"
+            style="display: none;"
+        >
+            Next Question
+        </button>
+
+
+        <div class="footer">
+            Japanese Vocabulary Practice
+        </div>
+
+    </div>
+
+
+    <script>
+
+        function updateScore(id, correct) {
+
+            fetch("/quiz/answer/", {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    id: id,
+                    correct: correct
+                })
+            });
+
+        }
+
+
+        function loadQuestion() {
+
+            fetch("/quiz/")
+
+                .then(response => response.json())
+
+                .then(data => {
+
+                    document.getElementById("word").textContent =
+                        data.word;
+
+                    document.getElementById("user-reading").value = "";
+
+                    document.getElementById("user-meaning").value = "";
+
+                    document.getElementById("result").textContent = "";
+
+                    document.getElementById("reading").textContent = "";
+
+                    document.getElementById("meaning").textContent = "";
+
+                    document.getElementById("usage-box").style.display =
+                        "none";
+
+                    document.getElementById("usage-japanese").textContent =
+                        "";
+
+                    document.getElementById("next").style.display =
+                        "none";
+
+                    document.getElementById("submit").style.display =
+                        "block";
+
+
+                    document.getElementById("user-reading").focus();
+
+
+                    document.getElementById("submit").onclick =
+                        function() {
+
+                            const userReading =
+                                document.getElementById("user-reading")
+                                .value
+                                .trim();
+
+
+                            const userMeaning =
+                                document.getElementById("user-meaning")
+                                .value
+                                .trim();
+
+
+                            const readingCorrect =
+                                data.readings.some(
+                                    reading =>
+                                        userReading === reading
+                                );
+
+
+                            const meaningCorrect =
+                                data.meanings.some(
+                                    meaning =>
+                                        userMeaning.toLowerCase() ===
+                                        meaning.toLowerCase()
+                                );
+
+
+                            if (readingCorrect && meaningCorrect) {
+
+                                document.getElementById("result")
+                                    .textContent =
+                                    "✓ Correct!";
+
+                                updateScore(data.id, true);
+
+
+                                if (data.usage) {
+
+                                    document.getElementById("usage-box")
+                                        .style.display =
+                                        "block";
+
+                                    document.getElementById("usage-japanese")
+                                        .textContent =
+                                        data.usage;
+
+                                }
+
+
+                                setTimeout(function() {
+
+                                    loadQuestion();
+
+                                }, 1500);
+
+                            }
+
+
+                            else {
+
+                                document.getElementById("result")
+                                    .textContent =
+                                    "✗ Incorrect";
+
+
+                                document.getElementById("reading")
+                                    .textContent =
+                                    "Correct reading: "
+                                    + data.readings.join(" / ");
+
+
+                                document.getElementById("meaning")
+                                    .textContent =
+                                    "Correct meaning: "
+                                    + data.meanings.join(" / ");
+
+
+                                if (data.usage) {
+
+                                    document.getElementById("usage-box")
+                                        .style.display =
+                                        "block";
+
+                                    document.getElementById("usage-japanese")
+                                        .textContent =
+                                        data.usage;
+
+                                }
+
+
+                                updateScore(data.id, false);
+
+
+                                document.getElementById("submit")
+                                    .style.display =
+                                    "none";
+
+                                document.getElementById("next")
+                                    .style.display =
+                                    "block";
+
+                            }
+
+                        };
+
+
+                    document.getElementById("next").onclick =
+                        function() {
+
+                            loadQuestion();
+
+                        };
+
+                });
+
+        }
+
+
+        loadQuestion();
+
+    </script>
+
+</body>
+
+</html>
